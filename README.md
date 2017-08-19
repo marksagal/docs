@@ -1,6 +1,19 @@
 # PHP - install from source
 [**Reference:** *https://blacksaildivision.com/php-install-from-source*](https://blacksaildivision.com/php-install-from-source)
 
+#### Repositories
+***CentOS/RHEL 7.x***
+```ssh
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
+```
+
+***CentOS/RHEL 6.x***
+```sh
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+rpm -Uvh https://mirror.webtatic.com/yum/el6/latest.rpm
+```
+
 #### Prerequirements
 First we need to install some libraries that are necessary to install PHP:
 ```sh
@@ -8,7 +21,7 @@ yum install bzip2-devel curl-devel libjpeg-devel libpng-devel freetype-devel lib
 ```
 
 #### Download and unpack sources
-Go to php.net download website and pick latest version of PHP. In our case it's 5.6.6, but this tutorial should work for any higher version.
+Go to php.net download website and pick latest version of PHP. In our case it's 7.0.22, but this tutorial should work for any higher version.
 ```sh
 cd ~/sources
 wget -O php-7.0.22.tar.gz http://jp2.php.net/get/php-7.0.22.tar.gz/from/this/mirror
@@ -21,7 +34,7 @@ Now it's probably the hardest part of compiling PHP. You must provide the ./conf
 
 Commands below will enable required and basic extensions like curl, ftp, GD, IMAP, MySQLi, PDO, etc. Two important things for this tutorial are --enable-opcache and --enable-fpm. We will use PHP OPCache that comes with newer versions of PHP and will use FPM instead of Apache mod_php.
 ```sh
-./configure --enable-bcmath --with-bz2 --enable-calendar --with-curl --enable-exif --enable-ftp --with-gd --with-jpeg-dir --with-png-dir --with-freetype-dir --enable-gd-native-ttf --with-imap --with-imap-ssl --with-kerberos --enable-mbstring --with-mcrypt --with-mhash --with-mysqli --with-openssl --with-pcre-regex --with-pdo-mysql --with-zlib-dir --enable-sysvsem --enable-sysvshm --enable-sysvmsg --enable-soap --enable-sockets --with-xmlrpc --enable-zip --with-zlib --enable-inline-optimization --enable-mbregex --enable-opcache --enable-fpm --with-libdir=lib64 --prefix=/usr/local/php
+./configure --enable-bcmath --with-bz2 --enable-calendar --with-curl --enable-exif --enable-ftp --with-gd --with-jpeg-dir --with-png-dir --with-freetype-dir --enable-gd-native-ttf --with-imap --with-imap-ssl --with-kerberos --enable-mbstring --with-mcrypt --with-mhash --with-mysqli --with-openssl --with-pcre-regex --with-pdo-mysql --with-zlib-dir --enable-sysvsem --enable-sysvshm --enable-sysvmsg --enable-soap --enable-sockets --with-xmlrpc --enable-zip --with-zlib --enable-inline-optimization --enable-mbregex --enable-opcache --enable-fpm --with-libdir=lib64 --with-gettext --prefix=/usr/local/php
 make
 make install
 ```
@@ -87,7 +100,7 @@ Second thing is php.ini file. After installation  php.ini file should located in
 
 ```sh
 cd /usr/local/php/lib
-cp ~/sources/php-5.6.6/php.ini-development ./php.ini
+cp ~/sources/php-7.0.22/php.ini-development ./php.ini
 vi php.ini
 ```
 This is pretty large file with lot of configuration settings. Fortunately we only need to change some of the options:
@@ -126,7 +139,7 @@ As You probably remember during Apache setup we create script so we can use serv
 With PHP source code there comes ready script for that purpose.
 ```sh
 cd /etc/init.d
-cp ~/sources/php-5.6.6/sapi/fpm/init.d.php-fpm php-fpm
+cp ~/sources/php-7.0.22/sapi/fpm/init.d.php-fpm php-fpm
 vi php-fpm
 ```
 Now we need to setup configuration for the file:
@@ -168,12 +181,13 @@ Now is the time to finally setup Apache for .php files. Let's edit one of the Vi
 vi /usr/local/apache2/conf/vhosts/example.com.conf
 ```
 ```
-<VirtualHost *80>
+<VirtualHost *:80>
     ServerName example.com
+    DocumentRoot "/var/www/html"
 
-    <LocationMatch "^/(.*\.php(/.*)?)$">
-        ProxyPass fcgi://127.0.0.1:9000/var/www/example.com/htdocs/$1
-    </LocationMatch>
+    <FilesMatch "\.(php*|phtm|phtml)$">
+        SetHandler "proxy:fcgi://127.0.0.1:9000"
+    </FilesMatch>
 
 ////Rest of the file below
 ```
