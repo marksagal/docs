@@ -68,7 +68,10 @@ Just as you set VirtualHosts for http on port 80 so you do for https on port 443
 
 To add a sister site on port 443 you need to add the following at the top of your file
 ```
-NameVirtualHost *:443
+<IfModule mod_ssl.c>
+   NameVirtualHost *:443
+   Listen 443
+</IfModule>
 ```
 
 and then a [VirtualHost](https://wiki.centos.org/VirtualHost) record something like this:
